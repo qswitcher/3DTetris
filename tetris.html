@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Can I Haz 3D Tetriz?</title>
+
+	<script src="libs/three.js"></script>
+	<script src="libs/OrbitControls.js"></script>
+	<script src="libs/jquery-2.0.0.js"></script>
+	<script src="libs/jquery.mousewheel.js"></script>
+	<script src="libs/RequestAnimationFrame.js"></script>
+	<script src="js/game.js"></script>
+	<script src="js/block.js"></script>
+	<script src="js/tetris.js"></script>
+	<script>
+
+	$(document).ready(function(){
+		var container = document.getElementById("container");
+
+		var app = new Tetris();
+		app.init({ container: container });
+
+		app.run();
+	});
+	</script>
+
+</head>
+<body style="">
+	<center><h1>Can I Haz 3D Tetriz?</h1></center>
+    <div id="container" style="width:50%; height:80%; position:absolute;"></div>
+	<div id="prompt" style="width:50%; height:6%; bottom:0; text-align:center; position:absolute;">Click to animate the cube</div>
+
+</body>
+</html>
