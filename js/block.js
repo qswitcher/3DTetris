@@ -13,7 +13,7 @@ Block.prototype.init = function(param)
 	this.boardHeight = param.boardHeight;
 
 	// set the shape, do a deep copy
-	var index = (param.cube) ? 0 : Math.floor(Math.random()*Block.Shapes.length);
+	var index = (param.cube) ? 0 : 0; //Math.floor(Math.random()*Block.Shapes.length);
 	var chosenShape = Block.Shapes[index];
 	this.shape = new Array();
 	for (var i = 0; i < chosenShape.length; i++){

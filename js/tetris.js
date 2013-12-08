@@ -7,7 +7,7 @@ Tetris.prototype = new Game.App();
 
 Tetris.prototype.init = function(param)
 {
-	this.boardWidth = 5;
+	this.boardWidth = 3;
 	this.boardHeight = 12;
 
 	Game.App.prototype.init.call(this, param);
@@ -30,7 +30,8 @@ Tetris.prototype.init = function(param)
 	this.createEnvironment();
 
 	// initialize blocks
-	this.tetrisPieces = new Array();
+	this.tetrisPieces = {};	   // object holding all petrified tetris
+							   // piece components
 	this.currentPiece = this.getNewBlock();
 
 	this.timeSinceLastMovement = 0;
@@ -69,9 +70,13 @@ Tetris.prototype.testCollision = function()
 		}
 
 		// did it hit another block?
-		for(var i = 0; i < this.tetrisPieces.length; i++){
-			if( this.tetrisPieces[i].collides(this.currentPiece)){
-				return true;
+		for(var level in this.tetrisPieces){
+			if(this.tetrisPieces.hasOwnProperty(level)){
+				for (var i = 0; i < this.tetrisPieces[level].length; i++){
+					if( this.tetrisPieces[level][i].collides(this.currentPiece)){
+						return true;
+					}
+				}
 			}
 		}
 	}
@@ -152,11 +157,16 @@ Tetris.prototype.update = function()
 			this.removeObject(this.currentPiece);
 			for (var i = 0; i < blocks.length; i++){
 				this.addObject(blocks[i]);
+
+				var level = blocks[i].getPosition().y;
+				if(!this.tetrisPieces.hasOwnProperty(level)){
+					this.tetrisPieces[level] = new Array();
+				}
+				this.tetrisPieces[level].push(blocks[i]);
 			}
-			this.tetrisPieces = this.tetrisPieces.concat(blocks);
 
 			// test if we have filled up a level
-
+			this.checkTetris();
 
 			this.currentPiece = this.getNewBlock();
 			//this.game_over = true;
@@ -167,6 +177,30 @@ Tetris.prototype.update = function()
 	Game.App.prototype.update.call(this);
 }
 
+/*
+Checks every row of board for a complete row and deletes
+any complete row, awarding points.
+*/
+Tetris.prototype.checkTetris = function(){
+	var fullLevelNum = this.boardWidth*this.boardWidth;
+	for (var level in this.tetrisPieces){
+		if (this.tetrisPieces.hasOwnProperty(level)){
+			if (this.tetrisPieces[level].length === fullLevelNum){
+				console.log("Tetris!");
+
+				// remove pieces
+				for (var i = 0; i < this.tetrisPieces[level].length; i++){
+					this.removeObject(this.tetrisPieces[level][i]);
+				}
+
+				// reset array
+				this.tetrisPieces[level] = new Array();
+			} else if(this.tetrisPieces[level].level > fullLevelNum){
+				alert("Error occurred :(");
+			}
+		}
+	}
+}
 
 /**
 This is called during the update method to handle all pressed key events.
