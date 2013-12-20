@@ -50,7 +50,7 @@ Tetris.prototype.init = function(param)
 
     this.focus();
 
-    this.sounds.theme.play();
+    //this.sounds.theme.play();
 }
 
 Tetris.prototype.getNewBlock = function(){

@@ -29,18 +29,23 @@
 	});
 	</script>
     <style>
+
+        ul{
+            padding: 0;
+            list-style-type: none;
+            margin: 10% 10%;
+        }
         li{
-            margin-left: 30px;
-            margin-top: 30px;
-            margin-bottom: 50px;
+            padding: 0;
+            text-align: center;
             width: 100%;
             font-family: Verdana, Geneva, sans-serif;
             font-size: 16pt;
         }
-        ul{
-            padding: 0;
-            list-style-type: none;
-            margin: 0;
+        h1 {
+            text-align: center;
+            margin-left: auto;
+            margin-right: auto;
         }
     </style>
 </head>
@@ -48,12 +53,23 @@
 <audio id="audio_theme" src="music/tecno_remix.mp3" preload="auto"></audio>
 
     <div>
+        <div id="menu" style="color: white; position: absolute; z-index: 1;
+        width: 50%; height: 60%; top: 20%;  border-style: ridge; left: 25%; background-color: black;">
+            <h1>3D Tetris!</h1>
+            <ul style="margin-left: auto; margin-right: auto;">
+                <li><p>Level: <span id="level_selection">0</span></p></li>
+                <li><a href="#">Start</a></li>
+                <li><p>Created by: Jeffrey Russom</p></li>
+                <li><p>github: <a href="#">3DTetris</a></p></li>
+            </ul>
+            <!--<h1><a href="#" onclick="$('#menu').slideToggle();">Slide</a> </h1>-->
+        </div>
         <div style="color: white; position: absolute; width: 200px; height: 400px;
         border-style: ridge; top: 100px; left: 100px;">
             <ul>
-                <li>Score: <span id="points">0</span></li>
-                <li>Lines: <span id="lines">0</span></li>
-                <li>Level: <span id="level">0</span></li>
+                <li><p>Score: <span id="points">0</span></p></li>
+                <li><p>Lines: <span id="lines">0</span></p></li>
+                <li><p>Level: <span id="level">0</span></p></li>
             </ul>
         </div>
         <div id="container" style="width:100%; height:100%; position:absolute; z-index: -1;"></div>
