@@ -13,9 +13,9 @@ Block.prototype.init = function(param)
     this.boardHeight = param.boardHeight;
 
     // set the shape, do a deep copy
-    var index = (param.cube) ? 0 : 0; //Math.floor(Math.random()*Block.Shapes.length);
+    var index = (param.cube) ? 0 : Math.floor(Math.random()*Block.Shapes.length);
     var chosenShape = Block.Shapes[index];
-    this.shape = new Array();
+    this.shape = [];
     for (var i = 0; i < chosenShape.length; i++){
         this.shape.push(chosenShape[i].slice());
     }
@@ -33,11 +33,31 @@ Block.prototype.init = function(param)
 
     // And put the geometry and material together into a mesh
     for (var i = 0; i < this.shape.length; i++){
-        var cube = new THREE.Mesh(geometry, material);
-        cube.position.x = this.shape[i][0];
-        cube.position.y = this.shape[i][1];
-        cube.position.z = this.shape[i][2];
-        group.add(cube);
+        if(!param.wireframe){
+            var cube = new THREE.Mesh(geometry, material);
+            cube.position.x = this.shape[i][0];
+            cube.position.y = this.shape[i][1];
+            cube.position.z = this.shape[i][2];
+            group.add(cube);
+        }
+
+        //if(! param.wireframe){
+            // add frame around box
+            var eps = 0.001;
+            var wire_frame_cube = new THREE.BoxHelper();
+        if(param.wireframe){
+            wire_frame_cube.material.color.setRGB( 1, 1, 1);
+        } else {
+            wire_frame_cube.material.color.setRGB( 0, 0, 0 );
+        }
+            wire_frame_cube.material.linewidth = 4;
+            wire_frame_cube.scale.set( 0.5 + eps, 0.5 + eps, 0.5 + eps );
+            wire_frame_cube.position.x = this.shape[i][0];
+            wire_frame_cube.position.y = this.shape[i][1];
+            wire_frame_cube.position.z = this.shape[i][2];
+            group.add( wire_frame_cube );
+//        }
+//
     }
 
     // set position
@@ -47,6 +67,7 @@ Block.prototype.init = function(param)
 
     this.setObject3D(group);
 }
+
 
 Block.prototype.petrify = function(){
     /**
@@ -106,9 +127,33 @@ Block.prototype.update = function()
 }
 
 Block.prototype.move = function(params){
-    var amount = params.amount || 1;
-    var axis =  params.axis;
-    this.object3D.position[axis] += +amount;
+    if(!this.moving){
+        var amount = params.amount || 1;
+        var axis =  params.axis;
+
+        var animate = params.animate;
+        var that = this;
+
+        animate = false;
+        var initial_position = this.object3D.position[axis];
+        if(animate){
+            // animate
+            new TWEEN.Tween( {position: initial_position} )
+                .to({position: initial_position + amount}, 1000 )
+                .onUpdate(function(){
+                                  that.object3D.position[axis] = this.position;
+                              })
+                .onComplete(function(){
+                                  that.moving = false;
+                })
+                //.easing( TWEEN.Easing.Elastic.InOut )
+                .start();
+        } else{
+            // move, don't animate
+            this.object3D.position[axis] += +amount;
+        }
+    }
+    //this.object3D.position[axis] += +amount;
 }
 
 Block.prototype.rotate = function(params){
@@ -138,6 +183,9 @@ Block.prototype.rotate = function(params){
     M.multiply(T);
     this.object3D.applyMatrix(M);
 
+    // tween the rotation
+    // TODO
+
     // now we have to transform the 
     var prefix = (amount < 0) ? 'n' : 'p';
     var matrix = Block['R' + prefix + axis];
@@ -158,7 +206,6 @@ Block.prototype.rotate = function(params){
     for(var i = 0; i < this.shape.length; i++){
         message += "(" + this.shape[i] + "),";
     }
-    console.log(message + "]");
 }
 
 /**

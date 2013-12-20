@@ -137,7 +137,7 @@ Game.App.prototype.run = function()
 	this.update();
 	this.renderer.render( this.scene, this.camera );
 	var that = this;
-	requestAnimationFrame(function() { that.run(); });	
+	requestAnimationFrame(function() { that.run(); });
 }
 
 // Update method - called once per tick

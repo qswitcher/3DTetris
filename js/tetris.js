@@ -7,7 +7,18 @@ Tetris.prototype = new Game.App();
 
 Tetris.prototype.init = function(param)
 {
-    this.boardWidth = 3;
+
+    // sounds
+    this.sounds = {}
+    this.sounds["theme"] = document.getElementById("audio_theme");
+
+    this.container = param.container;
+    this.pointsDom = param.pointsDom;
+    this.linesDom = param.linesDom;
+    this.score = 0;
+    this.lines = 0;
+
+    this.boardWidth = 5;
     this.boardHeight = 12;
 
     Game.App.prototype.init.call(this, param);
@@ -38,6 +49,8 @@ Tetris.prototype.init = function(param)
     this.timeToMove = 0.001;
 
     this.focus();
+
+    this.sounds.theme.play();
 }
 
 Tetris.prototype.getNewBlock = function(){
@@ -138,13 +151,7 @@ Tetris.prototype.createCameraControls = function()
     // move the camera back a bit
     this.camera.position.z = 20;
 
-    var controls = new THREE.OrbitControls( this.camera );
-    //controls.addEventListener('change', function(){});
-    // controls.movementSpeed = 13;
-    // controls.lookSpeed = 0.1;
-
-    // controls.lookVertical = false;
-    this.controls = controls;
+    this.controls = new THREE.OrbitControls( this.camera, this.container );
 
     this.clock = new THREE.Clock();
 }
@@ -161,8 +168,11 @@ Tetris.prototype.update = function()
         this.timeSinceLastMovement = 0;
         this.currentPiece.move({axis: 'y', amount: -1});
 
-        if ( this.testCollision()){
-            this.currentPiece.move({axis: 'y', amount: +1});
+        var collision = this.testCollision();
+
+        this.currentPiece.move({axis: 'y', amount: +1});
+
+        if (collision){
 
             // petrify block, determine if game over
             var blocks = this.currentPiece.petrify();
@@ -175,18 +185,35 @@ Tetris.prototype.update = function()
                     this.tetrisPieces[level] = [];
                 }
                 this.tetrisPieces[level].push(blocks[i]);
+
+                // increment score
+                this.addPoints(1);
             }
 
             // test if we have filled up a level
             this.checkTetris();
 
             this.currentPiece = this.getNewBlock();
-            //this.game_over = true;
+        } else{
+            // else do the movement and animate
+            this.currentPiece.move({axis: 'y', amount: -1, animate: true});
         }
 
     }
 
     Game.App.prototype.update.call(this);
+
+    TWEEN.update();
+}
+
+Tetris.prototype.addPoints = function(points){
+    this.score += points;
+    this.pointsDom.innerHTML= this.score;
+}
+
+Tetris.prototype.addLines = function(lines){
+    this.lines += lines;
+    this.linesDom.innerHTML = this.lines;
 }
 
 /*
@@ -198,7 +225,9 @@ Tetris.prototype.checkTetris = function(){
     for (var level in this.tetrisPieces){
         if (this.tetrisPieces.hasOwnProperty(level)){
             if (this.tetrisPieces[level].length === fullLevelNum){
-                console.log("Tetris!");
+                // we have a tetris, award points
+                this.addPoints(100);
+                this.addLines(1);
 
                 // remove pieces
                 for (var i = 0; i < this.tetrisPieces[level].length; i++){
@@ -206,7 +235,21 @@ Tetris.prototype.checkTetris = function(){
                 }
 
                 // reset array
-                this.tetrisPieces[level] = new Array();
+                this.tetrisPieces[level] = [];
+
+                // shift other blocks
+                for (var level2 in this.tetrisPieces){
+                    if(this.tetrisPieces.hasOwnProperty(level2)){
+                        if (parseInt(level2, 10) > parseInt(level, 10)){
+                            // lower this level
+                            for(var i = 0; i < this.tetrisPieces[level2].length; i++){
+                                this.tetrisPieces[level2][i].move({'axis': 'y', 'amount': -1})
+                            }
+                            this.tetrisPieces[level2 - 1] = this.tetrisPieces[level2];
+                            this.tetrisPieces[level2] = [];
+                        }
+                    }
+                }
             } else if(this.tetrisPieces[level].level > fullLevelNum){
                 alert("Error occurred :(");
             }
@@ -222,11 +265,18 @@ Tetris.prototype.processUserInput = function(){
         for(var i = 0; i < MOVEMENT_KEYS.length; i++){
             var key = MOVEMENT_KEYS[i];
             if( Game.Key._pressed[key.code]){
+                // move without animating
                 this.currentPiece.move({'axis': key.axis, 'amount': key.amount});
 
-                // if a collision occurs due to this movement, undo the movement
-                if (this.testCollision()){
-                    this.currentPiece.move({'axis': key.axis, 'amount': -1*key.amount});
+                // test collision
+                var collision = this.testCollision();
+
+                // undo movement
+                this.currentPiece.move({'axis': key.axis, 'amount': -1*key.amount});
+
+                // if there was no collision, go ahead and do the movement with the animation.
+                if (!collision){
+                    this.currentPiece.move({'axis': key.axis, 'amount': key.amount, animate: true});
                 }
             }
 
