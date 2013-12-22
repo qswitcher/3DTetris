@@ -15,6 +15,7 @@
 	<script>
 
 	$(document).ready(function(){
+
 		var container = document.getElementById("container");
         var points = document.getElementById("points");
         var lines = document.getElementById("lines");
@@ -26,26 +27,50 @@
                  levelDom: level});
 
 		app.run();
+
+        $('#start').on('click', function(){
+                  $('#menu').hide();
+            // start app
+        });
 	});
 	</script>
     <style>
 
+        a {
+            color: #ffffff;
+        }
         ul{
             padding: 0;
             list-style-type: none;
-            margin: 10% 10%;
+            margin: 0 10%;
         }
         li{
             padding: 0;
+            margin: 0;
             text-align: center;
             width: 100%;
             font-family: Verdana, Geneva, sans-serif;
             font-size: 16pt;
         }
+        .instructions {
+            overflow: hidden;
+            clear: both;
+        }
+        .instructions li{
+            text-align: left;;
+            font-size: 12pt;
+        }
+        .instructions span{
+            width: 20%;
+            display: inline-block;
+        }
         h1 {
             text-align: center;
             margin-left: auto;
             margin-right: auto;
+        }
+        p {
+            margin: 5px;
         }
     </style>
 </head>
@@ -58,10 +83,21 @@
             <h1>3D Tetris!</h1>
             <ul style="margin-left: auto; margin-right: auto;">
                 <li><p>Level: <span id="level_selection">0</span></p></li>
-                <li><a href="#">Start</a></li>
+                <li><a href="#" id="start">Start</a></li>
                 <li><p>Created by: Jeffrey Russom</p></li>
-                <li><p>github: <a href="#">3DTetris</a></p></li>
+                <li><p>github: <a href="https://github.com/qswitcher/3DTetris" target="_blank">3DTetris</a></p></li>
+                <li><p><a href="#" onclick="$('.instructions').toggle();">Instructions</a></p></li>
             </ul>
+            <div class="instructions" style="display: none">
+                <ul>
+                    <li><span>Q - A :</span> 90 deg rotation about +x axis</li>
+                    <li><span>W - S :</span> 90 deg rotation about +y axis</li>
+                    <li><span>E - D :</span> 90 deg rotation about +z axis</li>
+                    <li><span>Arrow keys :</span> move block horizontally</li>
+                    <li><span>P :</span> Pause</li>
+                    <li><span>Mouse : </span> pan and zoom</li>
+                </ul>
+            </div>
             <!--<h1><a href="#" onclick="$('#menu').slideToggle();">Slide</a> </h1>-->
         </div>
         <div style="color: white; position: absolute; width: 200px; height: 400px;
