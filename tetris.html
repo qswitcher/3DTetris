@@ -36,10 +36,17 @@
 
         $('#music_button').on('click', function(){
             app.toggleMusic();
+            app.focus();
+        });
+
+        $('#game_over').on('click', 'a', function(){
+            $('#game_over').hide();
+            app.reset();
+            $('#menu').show();
         });
 
         app.subscribe("GAME_OVER", null, function(args){
-            app.reset();
+            $('#game_over').show();
         });
 
         app.subscribe("SCORE_CHANGE", points, function(args){
@@ -90,12 +97,21 @@
         p {
             margin: 5px;
         }
+        #game_over p{
+            text-align: center;
+        }
     </style>
 </head>
 <body style="margin: 0px;">
 <audio loop id="audio_theme" src="music/tecno_remix.mp3" preload="auto"></audio>
 
     <div>
+        <div id="game_over"
+             style="color: white; position: absolute; z-index: 1; display: none;
+        width: 50%; height: 60%; top: 20%; left: 25%;">
+            <h1>GAME OVER!!!</h1>
+            <p><a href="#">Play Again?</a></p>
+        </div>
         <div id="menu" style="color: white; position: absolute; z-index: 1;
         width: 50%; height: 60%; top: 20%;  border-style: ridge; left: 25%; background-color: black;">
             <h1>3D Tetris!</h1>
