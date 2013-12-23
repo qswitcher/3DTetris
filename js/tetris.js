@@ -24,8 +24,8 @@ Tetris.prototype.init = function(param)
     this.container = param.container;
 
     // scoring
-    this.score = 0;
-    this.lines = 0;
+    this.setScore(0);
+    this.setLines(0);
 
     Game.App.prototype.init.call(this, param);
 
@@ -50,7 +50,6 @@ Tetris.prototype.init = function(param)
     // initialize blocks
     this.tetrisPieces = {};       // object holding all petrified tetris
                                // piece components
-    this.currentPiece = this.getNewBlock();
 
     this.timeSinceLastMovement = 0;
     this.timeToMove = 0.001;
@@ -79,14 +78,14 @@ Tetris.prototype.reset = function(){
     // remove current piece and get a new one
     this.removeObject(this.currentPiece);
 
-    this.currentPiece = this.getNewBlock();
-
     // reset scores and lines
-    this.score = 0;
-    this.lines = 0;
+    this.setScore(0);
+    this.setLines(0);
 }
 
 Tetris.prototype.start = function(){
+    this.currentPiece = this.getNewBlock();
+
     this.started = true;
 }
 
@@ -239,9 +238,12 @@ Tetris.prototype.update = function()
                     this.checkTetris();
 
                     // check for game over
-                    this.checkGameOver();
+                    if(this.checkGameOver()){
+                        return;
+                    }
 
                     this.currentPiece = this.getNewBlock();
+
                 } else{
                     // else do the movement and animate
                     this.currentPiece.move({axis: 'y', amount: -1, animate: true});
@@ -257,21 +259,33 @@ Tetris.prototype.update = function()
 }
 
 Tetris.prototype.addPoints = function(points){
-    this.score += points;
+    this.setScore(this.score + points);
+}
+
+Tetris.prototype.setScore = function(score){
+    this.score = score;
     this.publish("SCORE_CHANGE", this.score);
 }
 
 Tetris.prototype.addLines = function(lines){
-    this.lines += lines;
+    this.setLines(this.lines + lines);
+}
+
+Tetris.prototype.setLines = function(lines){
+    this.lines = lines;
     this.publish("LINE_CHANGE", this.lines);
 }
 
+/*
+Checks for GAME OVER condition, returns 'true' if the game is over.
+ */
 Tetris.prototype.checkGameOver = function(){
     if (this.tetrisPieces.hasOwnProperty(this.blockBeginHeight)){
-        console.log("GAME OVER!");
         this.game_over = true;
         this.publish("GAME_OVER");
+        return true;
     }
+    return false;
 }
 
 /*
