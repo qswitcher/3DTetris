@@ -22,15 +22,29 @@
         var level = document.getElementById("level");
 
 		var app = new Tetris();
-		app.init({ container: container , pointsDom: points,
+		app.init({ container: container ,
                  linesDom: lines,
                  levelDom: level});
 
 		app.run();
 
         $('#start').on('click', function(){
-                  $('#menu').hide();
+            $('#menu').hide();
+            app.start();
             app.focus();
+        });
+
+        app.subscribe("GAME_OVER", null, function(args){
+            console.log("Game over callback called");
+            app.reset();
+        });
+
+        app.subscribe("SCORE_CHANGE", points, function(args){
+            this.innerHTML= args;
+        });
+
+        app.subscribe("LINE_CHANGE", lines, function(args){
+            this.innerHTML = args;
         });
 	});
 	</script>

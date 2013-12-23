@@ -62,7 +62,8 @@ THREE.OrbitControls = function ( object, domElement ) {
 	this.minPolarAngle = 0; // radians
 	this.maxPolarAngle = Math.PI; // radians
 
-	this.rotationDamping = 0.01;
+    // set to 1 to turn off effect
+	this.rotationDamping = 1;
 
 	// Set to true to disable use of the keys
 	this.noKeys = true;

@@ -5,30 +5,35 @@ Tetris = function()
 
 Tetris.prototype = new Game.App();
 
+
 Tetris.prototype.init = function(param)
 {
+    // board dimensions
+    this.boardWidth = 5;
+    this.boardHeight = 12;
+    this.blockBeginHeight = Math.floor(this.boardHeight/2);
 
     // sounds
     this.sounds = {}
     this.sounds["theme"] = document.getElementById("audio_theme");
 
     this.paused = false;
+    this.started = false;
+    this.game_over = false;
 
     this.container = param.container;
-    this.pointsDom = param.pointsDom;
-    this.linesDom = param.linesDom;
+
+    // scoring
     this.score = 0;
     this.lines = 0;
 
-    this.boardWidth = 5;
-    this.boardHeight = 12;
-
     Game.App.prototype.init.call(this, param);
 
-    // one light above
+    // lights
+    // directional lights
     this.toplight = new THREE.DirectionalLight( 0xffffff, 1);
     this.toplight.position.set(0, 1, 0);
-    this.scene.add(this.toplight);        
+    this.scene.add(this.toplight);
 
     this.frontlight = new THREE.DirectionalLight( 0xffffff, 1);
     this.frontlight.position.set(0, 0, 1);
@@ -53,11 +58,41 @@ Tetris.prototype.init = function(param)
     this.focus();
 
     //this.sounds.theme.play();
+
+}
+
+Tetris.prototype.reset = function(){
+    this.started = false;
+    this.game_over = false;
+    this.paused = false;
+
+    // remove pieces from board
+    for(var p in this.tetrisPieces){
+        if(this.tetrisPieces.hasOwnProperty(p)){
+            for(var i = 0; i < this.tetrisPieces[p].length; i++){
+                this.removeObject(this.tetrisPieces[p][i]);
+            }
+        }
+    }
+    this.tetrisPieces = {}
+
+    // remove current piece and get a new one
+    this.removeObject(this.currentPiece);
+
+    this.currentPiece = this.getNewBlock();
+
+    // reset scores and lines
+    this.score = 0;
+    this.lines = 0;
+}
+
+Tetris.prototype.start = function(){
+    this.started = true;
 }
 
 Tetris.prototype.getNewBlock = function(){
     var block = new Block();
-    block.init({position: new THREE.Vector3(0,Math.floor(this.boardHeight/2),0),
+    block.init({position: new THREE.Vector3(0, this.blockBeginHeight, 0),
                 boardWidth: this.boardWidth,
                 boardDepth: this.boardWidth,
                 boardHeight: this.boardHeight,
@@ -165,64 +200,78 @@ Tetris.prototype.createCameraControls = function()
 
 Tetris.prototype.update = function()
 {
-    this.controls.update(this.clock.getDelta());
+    if (!this.game_over){
 
-    // handle any keyboard events
-    this.processUserInput();
+        if(!this.paused && this.started){
+            this.controls.update(this.clock.getDelta());
 
-    if(!this.paused){
-        this.timeSinceLastMovement += this.clock.getDelta();
-        if ( this.timeSinceLastMovement > this.timeToMove ) {
-            this.timeSinceLastMovement = 0;
-            this.currentPiece.move({axis: 'y', amount: -1});
+            // handle any keyboard events
+            this.processUserInput();
 
-            var collision = this.testCollision();
+            this.timeSinceLastMovement += this.clock.getDelta();
+            if ( this.timeSinceLastMovement > this.timeToMove ) {
+                this.timeSinceLastMovement = 0;
+                this.currentPiece.move({axis: 'y', amount: -1});
 
-            this.currentPiece.move({axis: 'y', amount: +1});
+                var collision = this.testCollision();
 
-            if (collision){
+                this.currentPiece.move({axis: 'y', amount: +1});
 
-                // petrify block, determine if game over
-                var blocks = this.currentPiece.petrify();
-                this.removeObject(this.currentPiece);
-                for (var i = 0; i < blocks.length; i++){
-                    this.addObject(blocks[i]);
+                if (collision){
 
-                    var level = blocks[i].getPosition().y;
-                    if(!this.tetrisPieces.hasOwnProperty(level)){
-                        this.tetrisPieces[level] = [];
+                    // petrify block, determine if game over
+                    var blocks = this.currentPiece.petrify();
+                    this.removeObject(this.currentPiece);
+                    for (var i = 0; i < blocks.length; i++){
+                        this.addObject(blocks[i]);
+
+                        var level = blocks[i].getPosition().y;
+                        if(!this.tetrisPieces.hasOwnProperty(level)){
+                            this.tetrisPieces[level] = [];
+                        }
+                        this.tetrisPieces[level].push(blocks[i]);
+
+                        // increment score
+                        this.addPoints(1);
                     }
-                    this.tetrisPieces[level].push(blocks[i]);
 
-                    // increment score
-                    this.addPoints(1);
+                    // test if we have filled up a level
+                    this.checkTetris();
+
+                    // check for game over
+                    this.checkGameOver();
+
+                    this.currentPiece = this.getNewBlock();
+                } else{
+                    // else do the movement and animate
+                    this.currentPiece.move({axis: 'y', amount: -1, animate: true});
                 }
 
-                // test if we have filled up a level
-                this.checkTetris();
-
-                this.currentPiece = this.getNewBlock();
-            } else{
-                // else do the movement and animate
-                this.currentPiece.move({axis: 'y', amount: -1, animate: true});
             }
 
+            Game.App.prototype.update.call(this);
+
+            TWEEN.update();
         }
-
-        Game.App.prototype.update.call(this);
-
-        TWEEN.update();
     }
 }
 
 Tetris.prototype.addPoints = function(points){
     this.score += points;
-    this.pointsDom.innerHTML= this.score;
+    this.publish("SCORE_CHANGE", this.score);
 }
 
 Tetris.prototype.addLines = function(lines){
     this.lines += lines;
-    this.linesDom.innerHTML = this.lines;
+    this.publish("LINE_CHANGE", this.lines);
+}
+
+Tetris.prototype.checkGameOver = function(){
+    if (this.tetrisPieces.hasOwnProperty(this.blockBeginHeight)){
+        console.log("GAME OVER!");
+        this.game_over = true;
+        this.publish("GAME_OVER");
+    }
 }
 
 /*
