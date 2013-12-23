@@ -12,6 +12,8 @@ Tetris.prototype.init = function(param)
     this.sounds = {}
     this.sounds["theme"] = document.getElementById("audio_theme");
 
+    this.paused = false;
+
     this.container = param.container;
     this.pointsDom = param.pointsDom;
     this.linesDom = param.linesDom;
@@ -120,12 +122,17 @@ Tetris.prototype.createEnvironment = function()
         }
     }
 
+    /*
+    Add star field
+     */
     var stars = new THREE.Geometry();
-    for (var i=0; i<1000; i++) {
+    for (var i = 0; i<1000; i++) {
+        var R = 5e2;
+        var x = 1e3 * Math.random() - R;
+        var y = 1e3 * Math.random() - R;
+        var z = ((Math.round(Math.random()))*2 - 1)*Math.sqrt(R*R - x*x - y*y);
         stars.vertices.push(new THREE.Vector3(
-                1e3 * Math.random() - 5e2,
-                1e3 * Math.random() - 5e2,
-                -1e2
+                x, y, z
         ));
     }
     var star_stuff = new THREE.ParticleBasicMaterial();
@@ -163,47 +170,49 @@ Tetris.prototype.update = function()
     // handle any keyboard events
     this.processUserInput();
 
-    this.timeSinceLastMovement += this.clock.getDelta();
-    if ( this.timeSinceLastMovement > this.timeToMove ) {
-        this.timeSinceLastMovement = 0;
-        this.currentPiece.move({axis: 'y', amount: -1});
+    if(!this.paused){
+        this.timeSinceLastMovement += this.clock.getDelta();
+        if ( this.timeSinceLastMovement > this.timeToMove ) {
+            this.timeSinceLastMovement = 0;
+            this.currentPiece.move({axis: 'y', amount: -1});
 
-        var collision = this.testCollision();
+            var collision = this.testCollision();
 
-        this.currentPiece.move({axis: 'y', amount: +1});
+            this.currentPiece.move({axis: 'y', amount: +1});
 
-        if (collision){
+            if (collision){
 
-            // petrify block, determine if game over
-            var blocks = this.currentPiece.petrify();
-            this.removeObject(this.currentPiece);
-            for (var i = 0; i < blocks.length; i++){
-                this.addObject(blocks[i]);
+                // petrify block, determine if game over
+                var blocks = this.currentPiece.petrify();
+                this.removeObject(this.currentPiece);
+                for (var i = 0; i < blocks.length; i++){
+                    this.addObject(blocks[i]);
 
-                var level = blocks[i].getPosition().y;
-                if(!this.tetrisPieces.hasOwnProperty(level)){
-                    this.tetrisPieces[level] = [];
+                    var level = blocks[i].getPosition().y;
+                    if(!this.tetrisPieces.hasOwnProperty(level)){
+                        this.tetrisPieces[level] = [];
+                    }
+                    this.tetrisPieces[level].push(blocks[i]);
+
+                    // increment score
+                    this.addPoints(1);
                 }
-                this.tetrisPieces[level].push(blocks[i]);
 
-                // increment score
-                this.addPoints(1);
+                // test if we have filled up a level
+                this.checkTetris();
+
+                this.currentPiece = this.getNewBlock();
+            } else{
+                // else do the movement and animate
+                this.currentPiece.move({axis: 'y', amount: -1, animate: true});
             }
 
-            // test if we have filled up a level
-            this.checkTetris();
-
-            this.currentPiece = this.getNewBlock();
-        } else{
-            // else do the movement and animate
-            this.currentPiece.move({axis: 'y', amount: -1, animate: true});
         }
 
+        Game.App.prototype.update.call(this);
+
+        TWEEN.update();
     }
-
-    Game.App.prototype.update.call(this);
-
-    TWEEN.update();
 }
 
 Tetris.prototype.addPoints = function(points){
