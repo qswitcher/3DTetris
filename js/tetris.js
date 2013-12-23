@@ -56,10 +56,24 @@ Tetris.prototype.init = function(param)
 
     this.focus();
 
-    //this.sounds.theme.play();
+    this.sounds.theme.play();
 
 }
 
+/*
+Toggles the theme music on/off
+ */
+Tetris.prototype.toggleMusic = function(){
+    if (this.sounds.theme.paused == false) {
+        this.sounds.theme.pause();
+    } else {
+        this.sounds.theme.play();
+    }
+}
+
+/*
+Resets game so that it can played again by called the 'start' method.
+ */
 Tetris.prototype.reset = function(){
     this.started = false;
     this.game_over = false;
