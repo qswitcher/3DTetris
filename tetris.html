@@ -1,0 +1,150 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Can I Haz 3D Tetriz?</title>
+
+	<script src="libs/three.js"></script>
+	<script src="libs/OrbitControls.js"></script>
+    <script src="libs/tween.min.js"></script>
+	<script src="libs/jquery-2.0.0.js"></script>
+	<script src="libs/jquery.mousewheel.js"></script>
+	<script src="libs/RequestAnimationFrame.js"></script>
+	<script src="js/game.js"></script>
+	<script src="js/block.js"></script>
+	<script src="js/tetris.js"></script>
+	<script>
+
+	$(document).ready(function(){
+
+		var container = document.getElementById("container");
+        var points = document.getElementById("points");
+        var lines = document.getElementById("lines");
+        var level = document.getElementById("level");
+
+		var app = new Tetris();
+		app.init({ container: container ,
+                 linesDom: lines,
+                 levelDom: level});
+
+		app.run();
+
+        $('#start').on('click', function(){
+            $('#menu').hide();
+            app.start();
+            app.focus();
+        });
+
+        $('#music_button').on('click', function(){
+            app.toggleMusic();
+            app.focus();
+        });
+
+        $('#game_over').on('click', 'a', function(){
+            $('#game_over').hide();
+            app.reset();
+            $('#menu').show();
+        });
+
+        app.subscribe("GAME_OVER", null, function(args){
+            $('#game_over').show();
+        });
+
+        app.subscribe("SCORE_CHANGE", points, function(args){
+            this.innerHTML= args;
+        });
+
+        app.subscribe("LINE_CHANGE", lines, function(args){
+            this.innerHTML = args;
+        });
+
+	});
+	</script>
+    <style>
+
+        a {
+            color: #ffffff;
+        }
+        ul{
+            padding: 0;
+            list-style-type: none;
+            margin: 0 10%;
+        }
+        li{
+            padding: 0;
+            margin: 0;
+            text-align: center;
+            width: 100%;
+            font-family: Verdana, Geneva, sans-serif;
+            font-size: 16pt;
+        }
+        .instructions {
+            overflow: hidden;
+            clear: both;
+        }
+        .instructions li{
+            text-align: left;;
+            font-size: 12pt;
+        }
+        .instructions span{
+            width: 20%;
+            display: inline-block;
+        }
+        h1 {
+            text-align: center;
+            margin-left: auto;
+            margin-right: auto;
+        }
+        p {
+            margin: 5px;
+        }
+        #game_over p{
+            text-align: center;
+        }
+    </style>
+</head>
+<body style="margin: 0px;">
+<audio loop id="audio_theme" src="music/tecno_remix.mp3" preload="auto"></audio>
+
+    <div>
+        <div id="game_over"
+             style="color: white; position: absolute; z-index: 1; display: none;
+        width: 50%; height: 60%; top: 20%; left: 25%;">
+            <h1>GAME OVER!!!</h1>
+            <p><a href="#">Play Again?</a></p>
+        </div>
+        <div id="menu" style="color: white; position: absolute; z-index: 1;
+        width: 50%; height: 60%; top: 20%;  border-style: ridge; left: 25%; background-color: black;">
+            <h1>3D Tetris!</h1>
+            <ul style="margin-left: auto; margin-right: auto;">
+                <li><p>Level: <span id="level_selection">0</span></p></li>
+                <li><a href="#" id="start">Start</a></li>
+                <li><p>Created by: Jeffrey Russom</p></li>
+                <li><p>github: <a href="https://github.com/qswitcher/3DTetris" target="_blank">3DTetris</a></p></li>
+                <li><p><a href="#" onclick="$('.instructions').toggle();">Instructions</a></p></li>
+            </ul>
+            <div class="instructions" style="display: none">
+                <ul>
+                    <li><span>Q - A :</span> 90 deg rotation about +x axis</li>
+                    <li><span>W - S :</span> 90 deg rotation about +y axis</li>
+                    <li><span>E - D :</span> 90 deg rotation about +z axis</li>
+                    <li><span>Arrow keys :</span> move block horizontally</li>
+                    <li><span>P :</span> Pause</li>
+                    <li><span>Mouse : </span> pan and zoom</li>
+                </ul>
+            </div>
+            <!--<h1><a href="#" onclick="$('#menu').slideToggle();">Slide</a> </h1>-->
+        </div>
+        <div style="color: white; position: absolute; width: 200px; height: 400px;
+        border-style: ridge; top: 100px; left: 100px;">
+            <ul>
+                <li><p>Score: <span id="points">0</span></p></li>
+                <li><p>Lines: <span id="lines">0</span></p></li>
+                <li><p>Level: <span id="level">0</span></p></li>
+            </ul>
+        </div>
+        <div id="container" style="width:100%; height:100%; position:absolute; z-index: -1;"></div>
+        <a href="#" id="music_button" style="position: absolute; z-index: 1; bottom: 10px; right: 10px;">Toggle Music On/Off</a>
+    </div>
+
+</body>
+</html>
